@@ -65,6 +65,11 @@ public class Main {
 
 
             List<Map.Entry<String, List<String>>> selectedEntries = pickAndPrintRandomEntries(dataList, crCount, drCount, adjustmentType, transactionType);
+            List<Map.Entry<String,List<String>>> jeEnties = null;
+
+            for(Map.Entry<String,List<String>> entry: selectedEntries){
+
+            }
 
             System.out.print("Enter an amount: ");
             double amount = scanner.nextDouble();
