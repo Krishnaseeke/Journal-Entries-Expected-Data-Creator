@@ -29,18 +29,62 @@ public class Main {
 
         // Get user input
         Scanner scanner = new Scanner(System.in);
-        System.out.print("Enter an integer value: ");
-        int input = scanner.nextInt();
 
-        System.out.print("Enter an amount: ");
-        double amount = scanner.nextDouble();
+        System.out.println("Enter JE Expected Data Creation: Automatic or Manual ?");
+        String creationType = scanner.nextLine();
+        int crCount = 0;
+        int drCount = 0;
+        String adjustmentType = null;
+        String transactionType = null;
+
+        if (Objects.equals(creationType, "Automatic")) {
+            System.out.println("Enter kind of JE to Execute: Adjustments or Transaction?");
+            transactionType = scanner.nextLine();
+            if (Objects.equals(transactionType, "Adjustments")) {
+                System.out.println("Enter the Adjustment Type: Cr or Dr");
+                adjustmentType = scanner.nextLine();
+                if (Objects.equals(adjustmentType, "Cr")) {
+                    System.out.println("Enter No. of Cr type Accounts to be Selected: ");
+                    crCount = scanner.nextInt();
+                } else if (Objects.equals(adjustmentType, "Dr")) {
+                    System.out.println("Enter No. of Dr Accounts to be Selected?");
+                    drCount = scanner.nextInt();
+                } else {
+                    System.out.println("Adjustment Type doesn't exists");
+                }
+
+            } else if (Objects.equals(transactionType, "Transaction")) {
+                System.out.println("Enter No. of Cr type Accounts to be Selected: ");
+                crCount = scanner.nextInt();
+
+                System.out.println("Enter No. of Dr Accounts to be Selected?");
+                drCount = scanner.nextInt();
+            } else {
+                System.out.println("Transaction Type doesn't exists");
+            }
+
+
+            List<Map.Entry<String, List<String>>> selectedEntries = pickAndPrintRandomEntries(dataList, crCount, drCount, adjustmentType, transactionType);
+            List<Map.Entry<String,List<String>>> jeEnties = null;
+
+            for(Map.Entry<String,List<String>> entry: selectedEntries){
+
+            }
+
+            System.out.print("Enter an amount: ");
+            double amount = scanner.nextDouble();
+
+            dataforJEUI(excelFilePath, "JE-UI", selectedEntries, amount);
+            COAImpact.calculateAndCreateImpactSheet(excelFilePath, selectedEntries, amount);
+
+        }
+
 
         // Pick and print random entries based on the input with equal Cr and Dr distribution
-        List<Map.Entry<String, List<String>>> selectedEntries = pickAndPrintRandomEntries(dataList, input);
+
 
         // Populate the new sheet with the selected entries
-        dataforJEUI(excelFilePath, "JE-UI", selectedEntries, amount);
-        COAImpact.calculateAndCreateImpactSheet(excelFilePath, selectedEntries, amount);
+
 
     }
 
@@ -103,12 +147,11 @@ public class Main {
         }
     }
 
-    public static List<Map.Entry<String, List<String>>> pickAndPrintRandomEntries(List<Map.Entry<String, List<String>>> dataList, int input) {
-        int numberOfEntriesToPick = input * 2;
-
+    public static List<Map.Entry<String, List<String>>> pickAndPrintRandomEntries(List<Map.Entry<String, List<String>>> dataList, int crCount, int drCount, String adjustmentType,String transactionType) {
         // Separate entries into those with "Cr" and those with "Dr"
         List<Map.Entry<String, List<String>>> crEntries = new ArrayList<>();
         List<Map.Entry<String, List<String>>> drEntries = new ArrayList<>();
+
 
         for (Map.Entry<String, List<String>> entry : dataList) {
             List<String> values = entry.getValue();
@@ -123,32 +166,24 @@ public class Main {
             }
         }
 
-        // Determine the number of entries to pick from each list
-        int halfToPick = numberOfEntriesToPick / 2;
-
         // Shuffle both lists to ensure randomness
         Collections.shuffle(crEntries);
         Collections.shuffle(drEntries);
 
-        // Ensure we don't pick more entries than available
-        if (halfToPick > crEntries.size()) {
-            halfToPick = crEntries.size();
-        }
-        if (halfToPick > drEntries.size()) {
-            halfToPick = drEntries.size();
-        }
-
         // Pick the required number of entries from each list
         List<Map.Entry<String, List<String>>> selectedEntries = new ArrayList<>();
-        selectedEntries.addAll(crEntries.subList(0, halfToPick));
-        selectedEntries.addAll(drEntries.subList(0, halfToPick));
 
-        // Print the selected entries
-//        for (Map.Entry<String, List<String>> entry : selectedEntries) {
-//            System.out.println("Picked Key: " + entry.getKey());
-//            System.out.println("Picked Values: " + entry.getValue());
-//            System.out.println();
-//        }
+        if (transactionType =="Adjustment"){
+            if(adjustmentType=="Cr"){
+                selectedEntries.addAll(crEntries.subList(0, crCount));
+            }else {
+                selectedEntries.addAll(drEntries.subList(0, drCount));
+            }
+        }else{
+            selectedEntries.addAll(crEntries.subList(0, crCount));
+            selectedEntries.addAll(drEntries.subList(0, drCount));
+        }
+
 
         return selectedEntries;
     }

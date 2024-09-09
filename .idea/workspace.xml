@@ -4,7 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5f0ff439-84da-49c8-866f-9604ea60d6a9" name="Changes" comment="JE" />
+    <list default="true" id="5f0ff439-84da-49c8-866f-9604ea60d6a9" name="Changes" comment="JE-Logic Modified">
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/JournalEntriesTestData.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/Main.java" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -51,7 +56,28 @@
       <option name="project" value="LOCAL" />
       <updated>1725442917351</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="JE">
+      <created>1725443218162</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1725443218162</updated>
+    </task>
+    <task id="LOCAL-00003" summary="JE">
+      <created>1725443264606</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1725443264606</updated>
+    </task>
+    <task id="LOCAL-00004" summary="JE-Logic Modified">
+      <created>1725473204187</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1725473204187</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -67,6 +93,7 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="JE" />
-    <option name="LAST_COMMIT_MESSAGE" value="JE" />
+    <MESSAGE value="JE-Logic Modified" />
+    <option name="LAST_COMMIT_MESSAGE" value="JE-Logic Modified" />
   </component>
 </project>
