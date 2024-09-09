@@ -117,17 +117,16 @@ public class Main {
                 if (row.getRowNum() == 0) continue; // Skip header row if it exists
 
                 String key = getCellValue(row.getCell(0));
-
                 List<String> values = new ArrayList<>();
-                for (int i = 1; i < row.getLastCellNum(); i++) {
-                    values.add(getCellValue(row.getCell(i)));
-                }
 
-                // Process the last value to handle multiple entries separated by a comma
-                if (!values.isEmpty()) {
-                    String lastValue = values.get(values.size() - 1);
-                    List<String> arrayValues = Arrays.asList(lastValue.split(","));
-                    values.set(values.size() - 1, String.join(", ", arrayValues));
+                for (int i = 1; i < row.getLastCellNum(); i++) {
+                    String cellValue = getCellValue(row.getCell(i));
+                    if (i == row.getLastCellNum() - 1) {
+                        // Split the last cell's value by comma and add each part as separate entries
+                        values.addAll(Arrays.asList(cellValue.split(",")));
+                    } else {
+                        values.add(cellValue);
+                    }
                 }
 
                 dataMap.put(key, values);
@@ -138,6 +137,7 @@ public class Main {
 
         return dataMap;
     }
+
 
     private static String getCellValue(Cell cell) {
         if (cell == null) {
