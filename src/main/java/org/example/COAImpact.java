@@ -11,103 +11,88 @@ import java.util.Map;
 
 public class COAImpact {
 
-    public static void calculateAndCreateImpactSheet(String filePath, List<Map.Entry<String, List<String>>> selectedEntries, double amount) {
+    public static void calculateAndCreateImpactSheet(String filePath, List<Map.Entry<String, List<String>>> selectedEntries, List<Map.Entry<String, List<String>>> jeEntries) {
         try (FileInputStream fis = new FileInputStream(filePath);
              Workbook workbook = new XSSFWorkbook(fis)) {
 
-            // Create a new sheet for impact analysis
-            Sheet impactSheet = workbook.createSheet("Impact");
-
-            // Row 0: COA Impact
-            Row headerRow = impactSheet.createRow(0);
-            Cell headerCell = headerRow.createCell(0);
-            headerCell.setCellValue("COA Impact");
-
-            // Populate the sheet with data
-            int rowIndex = 1; // Start after the header row
-            for (Map.Entry<String, List<String>> entry : selectedEntries) {
-                List<String> values = entry.getValue();
-
-                // Check if the values contain "Chart of Accounts"
-                if (!values.stream().anyMatch(val -> val.contains("Chart of Accounts"))) {
-                    continue; // Skip this entry if "Chart of Accounts" is not found
+            // Clear or create the "Impact" sheet
+            Sheet impactSheet = workbook.getSheet("Impact");
+            if (impactSheet == null) {
+                impactSheet = workbook.createSheet("Impact");
+            } else {
+                // Clear existing content
+                int lastRow = impactSheet.getLastRowNum();
+                for (int i = 0; i <= lastRow; i++) {
+                    Row row = impactSheet.getRow(i);
+                    if (row != null) {
+                        impactSheet.removeRow(row);
+                    }
                 }
-
-                Row row = impactSheet.createRow(rowIndex++);
-
-                String key = entry.getKey();
-
-                // Validate and parse Value[Index 1] and Value[Index 0]
-                String valueStr1 = values.get(1).trim();
-                String valueStr0 = values.get(0).trim();
-
-                if (valueStr1.isEmpty() || valueStr0.isEmpty()) {
-                    System.out.println("Skipping entry with empty value for key: " + key);
-                    continue; // Skip processing if values are empty
-                }
-
-                double valueAtIndex1 = parseDoubleOrZero(valueStr1);
-                double valueAtIndex0 = parseDoubleOrZero(valueStr0.replace("Cr", "").replace("Dr", "").trim());
-
-                String crDr = valueStr0.contains("Cr") ? "Cr" : "Dr";
-
-                // Calculate the impact based on Cr/Dr
-                if (crDr.equals("Cr")) {
-                    valueAtIndex1 -= amount;
-                } else if (crDr.equals("Dr")) {
-                    valueAtIndex1 += amount;
-                }
-
-                // Column 2: Key
-                row.createCell(1).setCellValue(key);
-
-                // Column 3: Value[Index 1] after the above logic calculation
-                row.createCell(2).setCellValue(valueAtIndex1);
-
-                // Reverse Cr/Dr if Value[Index 0] is negative
-                if (valueAtIndex1 < 0) {
-                    crDr = crDr.equals("Cr") ? "Dr" : "Cr"; // Reverse Cr/Dr if negative
-                }
-
-                // Column 4: Value[Index 0] with Cr/Dr reversal if negative
-                row.createCell(3).setCellValue(crDr);
-
-                // Update the corresponding data in the "Unique Accounts" sheet
-                updateUniqueAccountsSheet(workbook, key, crDr, valueAtIndex1);
             }
 
-            // Write the data to the same Excel file
+            // Header row
+            Row headerRow = impactSheet.createRow(0);
+            headerRow.createCell(0).setCellValue("Account Name");
+            headerRow.createCell(1).setCellValue("Current Balance");
+            headerRow.createCell(2).setCellValue("Amount Type");
+
+            // Process entries
+            for (Map.Entry<String, List<String>> selectedEntry : selectedEntries) {
+                String selectedKey = selectedEntry.getKey();
+                List<String> selectedValues = selectedEntry.getValue();
+
+                // Find matching key in jeEntries
+                for (Map.Entry<String, List<String>> jeEntry : jeEntries) {
+                    if (selectedKey.equals(jeEntry.getKey())) {
+                        List<String> jeValues = jeEntry.getValue();
+
+                        // Get the Dr/Cr values
+                        String selectedCrDr = selectedValues.get(1).trim();
+                        String jeCrDr = jeValues.get(1).trim();
+
+                        // Get the numeric values
+                        double selectedAmount = parseDoubleOrZero(selectedValues.get(0).trim());
+                        double jeAmount = parseDoubleOrZero(jeValues.get(0).trim());
+
+                        // Update the selected entries based on matching Cr/Dr
+                        if (selectedCrDr.equals(jeCrDr)) {
+                            selectedAmount += jeAmount; // Add if Cr/Dr match
+                        } else {
+                            selectedAmount -= jeAmount; // Subtract if Cr/Dr do not match
+                        }
+
+                        // Adjust Cr/Dr if the amount becomes negative
+                        if (selectedAmount < 0) {
+                            selectedAmount = Math.abs(selectedAmount);
+                            selectedCrDr = selectedCrDr.equals("Cr") ? "Dr" : "Cr";
+                        }
+
+                        // Update selectedValues with new amounts and Cr/Dr
+                        selectedValues.set(0, String.valueOf(selectedAmount));
+                        selectedValues.set(1, selectedCrDr);
+
+                        break; // Stop checking further jeEntries for this selectedEntry
+                    }
+                }
+            }
+
+            // Populate the "Impact" sheet with updated selectedEntries
+            int rowIndex = 1; // Start after header
+            for (Map.Entry<String, List<String>> entry : selectedEntries) {
+                Row row = impactSheet.createRow(rowIndex++);
+                List<String> values = entry.getValue();
+
+                row.createCell(0).setCellValue(entry.getKey()); // Column 1: Account Name
+                row.createCell(1).setCellValue(parseDoubleOrZero(values.get(0))); // Column 2: Current Balance
+                row.createCell(2).setCellValue(values.get(1)); // Column 3: Amount Type (Cr/Dr)
+            }
+
+            // Write back to the same Excel file
             try (FileOutputStream fos = new FileOutputStream(filePath)) {
                 workbook.write(fos);
             }
         } catch (IOException e) {
             e.printStackTrace();
-        }
-    }
-
-    private static void updateUniqueAccountsSheet(Workbook workbook, String key, String crDr, double updatedAmount) {
-        Sheet sheet = workbook.getSheet("Unique Accounts");
-        if (sheet == null) {
-            System.out.println("Unique Accounts sheet not found.");
-            return;
-        }
-
-        for (Row row : sheet) {
-            Cell accountCell = row.getCell(0); // Assuming the account name is in column 0
-            if (accountCell != null && key.equals(accountCell.getStringCellValue())) {
-                // Update Account Type (Dr/Cr)
-                Cell accountTypeCell = row.getCell(1); // Assuming Account Type is in column 1
-                if (accountTypeCell != null) {
-                    accountTypeCell.setCellValue(crDr);
-                }
-
-                // Update Current Balance
-                Cell balanceCell = row.getCell(2); // Assuming Current Balance is in column 2
-                if (balanceCell != null) {
-                    balanceCell.setCellValue(updatedAmount);
-                }
-                break; // Exit after updating the relevant row
-            }
         }
     }
 

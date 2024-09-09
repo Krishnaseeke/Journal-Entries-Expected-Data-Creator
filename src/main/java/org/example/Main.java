@@ -7,11 +7,13 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.example.JEUI.dataforJEUI;
 
 
 public class Main {
+
 
     public static void main(String[] args) {
         String excelFilePath = "C:\\Users\\E14-3\\Downloads\\JE - TestData.xlsx";
@@ -19,13 +21,6 @@ public class Main {
 
         // Read the key-value pairs from the Excel file and store them in a list
         List<Map.Entry<String, List<String>>> dataList = new ArrayList<>(readExcelFile(excelFilePath, sheetName).entrySet());
-
-//        // Print the key-value pairs
-//        for (Map.Entry<String, List<String>> entry : dataList) {
-//            System.out.println("Key: " + entry.getKey());
-//            System.out.println("Values: " + entry.getValue());
-//            System.out.println();
-//        }
 
         // Get user input
         Scanner scanner = new Scanner(System.in);
@@ -50,7 +45,8 @@ public class Main {
                     System.out.println("Enter No. of Dr Accounts to be Selected?");
                     drCount = scanner.nextInt();
                 } else {
-                    System.out.println("Adjustment Type doesn't exists");
+                    System.out.println("Adjustment Type doesn't exist");
+                    return;
                 }
 
             } else if (Objects.equals(transactionType, "Transaction")) {
@@ -60,33 +56,51 @@ public class Main {
                 System.out.println("Enter No. of Dr Accounts to be Selected?");
                 drCount = scanner.nextInt();
             } else {
-                System.out.println("Transaction Type doesn't exists");
+                System.out.println("Transaction Type doesn't exist");
+                return;
             }
-
 
             List<Map.Entry<String, List<String>>> selectedEntries = pickAndPrintRandomEntries(dataList, crCount, drCount, adjustmentType, transactionType);
-            List<Map.Entry<String,List<String>>> jeEnties = null;
 
-            for(Map.Entry<String,List<String>> entry: selectedEntries){
+            double amount = 0.0;
+            String amountType;
 
+            List<Map.Entry<String, List<String>>> jeEntries = new ArrayList<>(); // Initialize the list
+
+            for (Map.Entry<String, List<String>> entry : selectedEntries) {
+                System.out.print("Enter an amount for key " + entry.getKey() + ": ");
+                amount = scanner.nextDouble();
+
+                // Update the amount to the entry value at zero index
+                entry.getValue().set(0, String.valueOf(amount));
+
+                // Consume the remaining newline left by nextDouble()
+                scanner.nextLine();
+
+                // Print the current amount type at index 1
+                System.out.print("Enter the Amount Type (Cr or Dr) for key " + entry.getKey() + " (Current amountType: " + entry.getValue().get(1) + "): ");
+                amountType = scanner.nextLine();
+
+                // Update the amount type to the entry value at first index
+                entry.getValue().set(1, amountType);
+
+                // Add the updated entry to the list
+                jeEntries.add(entry);
             }
 
-            System.out.print("Enter an amount: ");
-            double amount = scanner.nextDouble();
+            if (checkEqualAmounts(jeEntries)) {
+                dataforJEUI(excelFilePath,jeEntries);
+                COAImpact.calculateAndCreateImpactSheet(excelFilePath,dataList , jeEntries);
+            } else {
+                System.out.println("Both are not Equal");
+            }
 
-            dataforJEUI(excelFilePath, "JE-UI", selectedEntries, amount);
-            COAImpact.calculateAndCreateImpactSheet(excelFilePath, selectedEntries, amount);
+
+            // Populate data into 'JE-UI' and 'Impact' sheets
 
         }
-
-
-        // Pick and print random entries based on the input with equal Cr and Dr distribution
-
-
-        // Populate the new sheet with the selected entries
-
-
     }
+
 
     public static Map<String, List<String>> readExcelFile(String filePath, String sheetName) {
         Map<String, List<String>> dataMap = new LinkedHashMap<>();
@@ -147,11 +161,11 @@ public class Main {
         }
     }
 
-    public static List<Map.Entry<String, List<String>>> pickAndPrintRandomEntries(List<Map.Entry<String, List<String>>> dataList, int crCount, int drCount, String adjustmentType,String transactionType) {
+    public static List<Map.Entry<String, List<String>>> pickAndPrintRandomEntries(
+            List<Map.Entry<String, List<String>>> dataList, int crCount, int drCount, String adjustmentType, String transactionType) {
         // Separate entries into those with "Cr" and those with "Dr"
         List<Map.Entry<String, List<String>>> crEntries = new ArrayList<>();
         List<Map.Entry<String, List<String>>> drEntries = new ArrayList<>();
-
 
         for (Map.Entry<String, List<String>> entry : dataList) {
             List<String> values = entry.getValue();
@@ -173,20 +187,54 @@ public class Main {
         // Pick the required number of entries from each list
         List<Map.Entry<String, List<String>>> selectedEntries = new ArrayList<>();
 
-        if (transactionType =="Adjustment"){
-            if(adjustmentType=="Cr"){
-                selectedEntries.addAll(crEntries.subList(0, crCount));
-            }else {
-                selectedEntries.addAll(drEntries.subList(0, drCount));
+        if ("Adjustment".equals(transactionType)) {
+            if ("Cr".equals(adjustmentType)) {
+                selectedEntries.addAll(crEntries.subList(0, Math.min(crCount, crEntries.size())));
+            } else {
+                selectedEntries.addAll(drEntries.subList(0, Math.min(drCount, drEntries.size())));
             }
-        }else{
-            selectedEntries.addAll(crEntries.subList(0, crCount));
-            selectedEntries.addAll(drEntries.subList(0, drCount));
+        } else {
+            selectedEntries.addAll(crEntries.subList(0, Math.min(crCount, crEntries.size())));
+            selectedEntries.addAll(drEntries.subList(0, Math.min(drCount, drEntries.size())));
         }
 
+        // Trim values for each selected entry
+        List<Map.Entry<String, List<String>>> trimmedEntries = new ArrayList<>();
+        for (Map.Entry<String, List<String>> entry : selectedEntries) {
+            // Filter out empty values
+            List<String> trimmedValues = entry.getValue().stream()
+                    .filter(value -> !value.isEmpty())  // Remove empty strings
+                    .collect(Collectors.toList());
 
-        return selectedEntries;
+            // Create a new entry with trimmed values
+            trimmedEntries.add(new AbstractMap.SimpleEntry<>(entry.getKey(), trimmedValues));
+        }
+
+        return trimmedEntries;
     }
 
+
+    // Function to check if the sums of 'Cr' and 'Dr' amounts are equal
+    public static boolean checkEqualAmounts(List<Map.Entry<String, List<String>>> jeEntries) {
+        double crSum = 0.0;
+        double drSum = 0.0;
+
+        for (Map.Entry<String, List<String>> entry : jeEntries) {
+            // Parse the amount at the zero index
+            double amount = Double.parseDouble(entry.getValue().get(0));
+            // Get the amount type at the first index
+            String amountType = entry.getValue().get(1);
+
+            // Add to 'Cr' or 'Dr' sum based on amount type
+            if ("Cr".equalsIgnoreCase(amountType)) {
+                crSum += amount;
+            } else if ("Dr".equalsIgnoreCase(amountType)) {
+                drSum += amount;
+            }
+        }
+
+        // Check if the sums are equal
+        return crSum == drSum;
+    }
 
 }
