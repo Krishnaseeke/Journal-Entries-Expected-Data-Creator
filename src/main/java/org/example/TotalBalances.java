@@ -41,10 +41,6 @@ public class TotalBalances {
             headerRow.createCell(0).setCellValue("Group Name");
             headerRow.createCell(1).setCellValue("Summation Value");
 
-            for( Map.Entry<String, List<String>> entry: selectedEntries){
-                System.out.println(entry.getKey()+"_____---"+entry.getValue());
-            }
-
             // Group entries by selectedEntries.value[2]
             Map<String, List<Map.Entry<String, List<String>>>> groupedEntries = groupEntriesByCategory(selectedEntries);
 
@@ -73,12 +69,15 @@ public class TotalBalances {
             pnlHeaderRow.createCell(0).setCellValue("Total PnL Balance [Net Income Profit/Loss] = [Incomes-Expenses]-Opening Stock+Closing Stock");
 
             // PnL Value row
-            Row pnlValueRow = totalBalancesSheet.createRow(rowIndex);
+            Row pnlValueRow = totalBalancesSheet.createRow(rowIndex++);
             Cell pnlLabelCell = pnlValueRow.createCell(0);
             pnlLabelCell.setCellValue(totalPnL.compareTo(BigDecimal.ZERO) < 0 ? "Dr" : "Cr"); // Column 1: Dr/Cr
             Cell pnlValueCell = pnlValueRow.createCell(1);
-            pnlValueCell.setCellValue(totalPnL.abs().doubleValue()); // Column 2: Absolute value of PnL
+            pnlValueCell.setCellValue(totalPnL.doubleValue()); // Column 2: Absolute value of PnL
             pnlValueCell.setCellStyle(decimalStyle);
+
+            // Additional rows for Assets and Equities
+            addAssetsAndEquitiesRows(totalBalancesSheet, groupSums, totalPnL, rowIndex, decimalStyle);
 
             // Write back to the same Excel file
             try (FileOutputStream fos = new FileOutputStream(filePath)) {
@@ -111,9 +110,6 @@ public class TotalBalances {
 
         return groupedEntries;
     }
-
-    // Method to summarize groups based on the specified logic
-
 
     // Summarize groups method with enhanced precision handling and logging
     private static Map<String, BigDecimal> summarizeGroups(Map<String, List<Map.Entry<String, List<String>>>> groupedEntries) {
@@ -156,8 +152,6 @@ public class TotalBalances {
         return groupSums;
     }
 
-
-
     // Utility method to parse a BigDecimal value or return zero if parsing fails
     private static BigDecimal parseBigDecimalOrZero(String value) {
         try {
@@ -165,5 +159,48 @@ public class TotalBalances {
         } catch (NumberFormatException e) {
             return BigDecimal.ZERO; // Return 0 if the value cannot be parsed as a BigDecimal
         }
+    }
+
+    // Method to add Assets and Equities rows based on additional calculations
+    private static void addAssetsAndEquitiesRows(Sheet sheet, Map<String, BigDecimal> groupSums, BigDecimal totalPnL, int rowIndex, CellStyle decimalStyle) {
+        // Fixed values for additional calculations
+        BigDecimal stockInHand = new BigDecimal("176918.76");
+        BigDecimal otherCurrentAssets = new BigDecimal("30629.34");
+        BigDecimal openingBalanceEquity = new BigDecimal("1035188.01");
+        BigDecimal advancesReceived = new BigDecimal("23282.71");
+        BigDecimal unwithdrawnCheques = new BigDecimal("30254.49");
+
+        // Calculate Assets total
+        BigDecimal assetsTotal = groupSums.getOrDefault("Assets", BigDecimal.ZERO)
+                .add(stockInHand)
+                .add(otherCurrentAssets);
+
+        // Add row for Assets
+
+        Row balanceSheetHeaderRow = sheet.createRow(rowIndex++);
+        balanceSheetHeaderRow.createCell(0).setCellValue("Balance Sheet: Total Assets = Total Equities and Liabilities");
+        Row assetsHeaderRow = sheet.createRow(rowIndex++);
+        assetsHeaderRow.createCell(0).setCellValue("Assets: Sum of Accounts + Stock-in-Hand + Other Current Assets");
+        Row assetsValueRow = sheet.createRow(rowIndex++);
+        assetsValueRow.createCell(0).setCellValue("Dr");
+        Cell assetsValueCell = assetsValueRow.createCell(1);
+        assetsValueCell.setCellValue(assetsTotal.doubleValue());
+        assetsValueCell.setCellStyle(decimalStyle);
+
+        // Calculate Equities total
+        BigDecimal equitiesTotal = groupSums.getOrDefault("Equities and Liabilities", BigDecimal.ZERO)
+                .add(openingBalanceEquity)
+                .add(totalPnL)
+                .add(advancesReceived)
+                .add(unwithdrawnCheques);
+
+        // Add row for Equities
+        Row equitiesHeaderRow = sheet.createRow(rowIndex++);
+        equitiesHeaderRow.createCell(0).setCellValue("Equities: Sum of Accounts + Opening Balance Equity + Total PnL Balance + Advances Received + Unwithdrawn Cheques");
+        Row equitiesValueRow = sheet.createRow(rowIndex++);
+        equitiesValueRow.createCell(0).setCellValue(equitiesTotal.compareTo(BigDecimal.ZERO) < 0 ? "Dr" : "Cr");
+        Cell equitiesValueCell = equitiesValueRow.createCell(1);
+        equitiesValueCell.setCellValue(equitiesTotal.doubleValue());
+        equitiesValueCell.setCellStyle(decimalStyle);
     }
 }
