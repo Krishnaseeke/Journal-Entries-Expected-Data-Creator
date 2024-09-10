@@ -4,10 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5f0ff439-84da-49c8-866f-9604ea60d6a9" name="Changes" comment="Modified 1">
+    <list default="true" id="5f0ff439-84da-49c8-866f-9604ea60d6a9" name="Changes" comment="Unique Accounts Updated">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/COAImpact.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/COAImpact.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/Main.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/org/example/COAImpact.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/org/example/COAImpact.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/org/example/Main$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/org/example/Main$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/org/example/Main.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/org/example/Main.class" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -127,7 +128,14 @@
       <option name="project" value="LOCAL" />
       <updated>1725938348756</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary="Unique Accounts Updated">
+      <created>1725946353436</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1725946353436</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -145,6 +153,7 @@
     <MESSAGE value="JE" />
     <MESSAGE value="JE-Logic Modified" />
     <MESSAGE value="Modified 1" />
-    <option name="LAST_COMMIT_MESSAGE" value="Modified 1" />
+    <MESSAGE value="Unique Accounts Updated" />
+    <option name="LAST_COMMIT_MESSAGE" value="Unique Accounts Updated" />
   </component>
 </project>
