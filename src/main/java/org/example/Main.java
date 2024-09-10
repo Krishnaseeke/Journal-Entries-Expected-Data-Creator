@@ -22,6 +22,10 @@ public class Main {
         // Read the key-value pairs from the Excel file and store them in a list
         List<Map.Entry<String, List<String>>> dataList = new ArrayList<>(readExcelFile(excelFilePath, sheetName).entrySet());
 
+        for ( Map.Entry<String, List<String>> data: dataList){
+            System.out.println(data.getKey()+"------"+data.getValue());
+        }
+
         // Get user input
         Scanner scanner = new Scanner(System.in);
 
@@ -150,7 +154,8 @@ public class Main {
                 if (DateUtil.isCellDateFormatted(cell)) {
                     return cell.getDateCellValue().toString();
                 } else {
-                    return String.valueOf((int) cell.getNumericCellValue());
+                    // Preserve decimals by returning the cell's numeric value as a string
+                    return String.valueOf(cell.getNumericCellValue());
                 }
             case BOOLEAN:
                 return String.valueOf(cell.getBooleanCellValue());
@@ -160,6 +165,7 @@ public class Main {
                 return "";
         }
     }
+
 
     public static List<Map.Entry<String, List<String>>> pickAndPrintRandomEntries(
             List<Map.Entry<String, List<String>>> dataList, int crCount, int drCount, String adjustmentType, String transactionType) {

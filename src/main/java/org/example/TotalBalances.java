@@ -7,6 +7,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 
 public class TotalBalances {
@@ -30,10 +31,19 @@ public class TotalBalances {
                 }
             }
 
+            // Create a cell style for formatting the values to 5 decimal places
+            CellStyle decimalStyle = workbook.createCellStyle();
+            DataFormat format = workbook.createDataFormat();
+            decimalStyle.setDataFormat(format.getFormat("0.00000"));
+
             // Header row
             Row headerRow = totalBalancesSheet.createRow(0);
             headerRow.createCell(0).setCellValue("Group Name");
             headerRow.createCell(1).setCellValue("Summation Value");
+
+            for( Map.Entry<String, List<String>> entry: selectedEntries){
+                System.out.println(entry.getKey()+"_____---"+entry.getValue());
+            }
 
             // Group entries by selectedEntries.value[2]
             Map<String, List<Map.Entry<String, List<String>>>> groupedEntries = groupEntriesByCategory(selectedEntries);
@@ -46,7 +56,9 @@ public class TotalBalances {
             for (Map.Entry<String, BigDecimal> entry : groupSums.entrySet()) {
                 Row row = totalBalancesSheet.createRow(rowIndex++);
                 row.createCell(0).setCellValue(entry.getKey()); // Column 1: Group Name
-                row.createCell(1).setCellValue(entry.getValue().doubleValue()); // Column 2: Summation Value as double
+                Cell valueCell = row.createCell(1); // Column 2: Summation Value as double
+                valueCell.setCellValue(entry.getValue().doubleValue());
+                valueCell.setCellStyle(decimalStyle);
             }
 
             // Calculate Total PnL Balance
@@ -62,8 +74,11 @@ public class TotalBalances {
 
             // PnL Value row
             Row pnlValueRow = totalBalancesSheet.createRow(rowIndex);
-            pnlValueRow.createCell(0).setCellValue(totalPnL.compareTo(BigDecimal.ZERO) < 0 ? "Dr" : "Cr"); // Column 1: Dr/Cr
-            pnlValueRow.createCell(1).setCellValue(totalPnL.abs().doubleValue()); // Column 2: Absolute value of PnL
+            Cell pnlLabelCell = pnlValueRow.createCell(0);
+            pnlLabelCell.setCellValue(totalPnL.compareTo(BigDecimal.ZERO) < 0 ? "Dr" : "Cr"); // Column 1: Dr/Cr
+            Cell pnlValueCell = pnlValueRow.createCell(1);
+            pnlValueCell.setCellValue(totalPnL.abs().doubleValue()); // Column 2: Absolute value of PnL
+            pnlValueCell.setCellStyle(decimalStyle);
 
             // Write back to the same Excel file
             try (FileOutputStream fos = new FileOutputStream(filePath)) {
@@ -98,6 +113,9 @@ public class TotalBalances {
     }
 
     // Method to summarize groups based on the specified logic
+
+
+    // Summarize groups method with enhanced precision handling and logging
     private static Map<String, BigDecimal> summarizeGroups(Map<String, List<Map.Entry<String, List<String>>>> groupedEntries) {
         Map<String, BigDecimal> groupSums = new LinkedHashMap<>();
 
@@ -114,18 +132,31 @@ public class TotalBalances {
                 BigDecimal amount = parseBigDecimalOrZero(values.get(0).trim());
                 String crDr = values.get(1).trim();
 
+                // Log each processed entry to identify where the difference may occur
+                System.out.println("Processing entry: " + entry.getKey() + " with amount: " + amount + " and type: " + crDr);
+
                 if (isAssetsOrExpenses) {
                     sum = sum.add(crDr.equals("Dr") ? amount : amount.negate());
                 } else if (isEquitiesOrLiabilities) {
                     sum = sum.add(crDr.equals("Cr") ? amount : amount.negate());
                 }
+
+                // Log intermediate sums with precision details
+                System.out.println("Intermediate sum for " + groupName + ": " + sum);
             }
 
+            // Ensure the sum retains the correct scale for consistency
+            sum = sum.setScale(5, RoundingMode.HALF_UP);
             groupSums.put(groupName, sum);
+
+            // Log the final sum value for verification
+            System.out.println("Finalized sum for " + groupName + ": " + sum);
         }
 
         return groupSums;
     }
+
+
 
     // Utility method to parse a BigDecimal value or return zero if parsing fails
     private static BigDecimal parseBigDecimalOrZero(String value) {
