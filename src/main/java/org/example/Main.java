@@ -11,9 +11,7 @@ import java.util.stream.Collectors;
 
 import static org.example.JEUI.dataforJEUI;
 
-
 public class Main {
-
 
     public static void main(String[] args) {
         String excelFilePath = "C:\\Users\\E14-3\\Downloads\\JE - TestData.xlsx";
@@ -22,7 +20,7 @@ public class Main {
         // Read the key-value pairs from the Excel file and store them in a list
         List<Map.Entry<String, List<String>>> dataList = new ArrayList<>(readExcelFile(excelFilePath, sheetName).entrySet());
 
-
+        List<Map.Entry<String, List<String>>> updatedSelectedEntries = null;
         // Get user input
         Scanner scanner = new Scanner(System.in);
 
@@ -90,18 +88,18 @@ public class Main {
             }
 
             if (checkEqualAmounts(jeEntries)) {
-                dataforJEUI(excelFilePath,jeEntries);
-                COAImpact.calculateAndCreateImpactSheet(excelFilePath,dataList , jeEntries);
+                dataforJEUI(excelFilePath, jeEntries);
+                updatedSelectedEntries = COAImpact.calculateAndCreateImpactSheet(excelFilePath, dataList, jeEntries);
+
+                // Update the Excel file with updated selected entries
+                updateExcelFile(excelFilePath, sheetName, updatedSelectedEntries);
+
             } else {
                 System.out.println("Both are not Equal");
             }
 
-
-            // Populate data into 'JE-UI' and 'Impact' sheets
-
         }
     }
-
 
     public static Map<String, List<String>> readExcelFile(String filePath, String sheetName) {
         Map<String, List<String>> dataMap = new LinkedHashMap<>();
@@ -139,7 +137,6 @@ public class Main {
         return dataMap;
     }
 
-
     private static String getCellValue(Cell cell) {
         if (cell == null) {
             return "";
@@ -162,7 +159,6 @@ public class Main {
                 return "";
         }
     }
-
 
     public static List<Map.Entry<String, List<String>>> pickAndPrintRandomEntries(
             List<Map.Entry<String, List<String>>> dataList, int crCount, int drCount, String adjustmentType, String transactionType) {
@@ -216,7 +212,6 @@ public class Main {
         return trimmedEntries;
     }
 
-
     // Function to check if the sums of 'Cr' and 'Dr' amounts are equal
     public static boolean checkEqualAmounts(List<Map.Entry<String, List<String>>> jeEntries) {
         double crSum = 0.0;
@@ -240,4 +235,45 @@ public class Main {
         return crSum == drSum;
     }
 
+    // Function to update the Excel file with updated selected entries
+    public static void updateExcelFile(String filePath, String sheetName, List<Map.Entry<String, List<String>>> updatedEntries) {
+        try (FileInputStream fis = new FileInputStream(filePath);
+             Workbook workbook = new XSSFWorkbook(fis)) {
+
+            Sheet sheet = workbook.getSheet(sheetName);
+            if (sheet == null) {
+                throw new IllegalArgumentException("Sheet with name " + sheetName + " does not exist");
+            }
+
+            // Create a map for easy access of updated entries
+            Map<String, List<String>> updatedEntriesMap = updatedEntries.stream()
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+            // Update rows in the sheet
+            for (Row row : sheet) {
+                if (row.getRowNum() == 0) continue; // Skip header row
+
+                Cell keyCell = row.getCell(0);
+                String key = getCellValue(keyCell);
+
+                if (updatedEntriesMap.containsKey(key)) {
+                    List<String> updatedValues = updatedEntriesMap.get(key);
+
+                    // Update the cells with the new values
+                    for (int i = 1; i <= updatedValues.size(); i++) {
+                        Cell cell = row.getCell(i, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK);
+                        cell.setCellValue(updatedValues.get(i - 1));
+                    }
+                }
+            }
+
+            // Write the changes back to the Excel file
+            try (FileOutputStream fos = new FileOutputStream(filePath)) {
+                workbook.write(fos);
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }
