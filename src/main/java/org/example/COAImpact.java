@@ -13,7 +13,7 @@ import java.util.*;
 
 public class COAImpact {
 
-    public static void calculateAndCreateImpactSheet(String filePath, List<Map.Entry<String, List<String>>> selectedEntries, List<Map.Entry<String, List<String>>> jeEntries) {
+    public static List<Map.Entry<String, List<String>>> calculateAndCreateImpactSheet(String filePath, List<Map.Entry<String, List<String>>> selectedEntries, List<Map.Entry<String, List<String>>> jeEntries) {
         try (FileInputStream fis = new FileInputStream(filePath);
              Workbook workbook = new XSSFWorkbook(fis)) {
 
@@ -111,6 +111,9 @@ public class COAImpact {
         }
 
         TotalBalances.summarizeGroups(filePath,selectedEntries);
+
+        // Return the modified selected entries
+        return selectedEntries;
     }
 
     // Method to update selected entries based on JE entries
