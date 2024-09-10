@@ -22,9 +22,6 @@ public class Main {
         // Read the key-value pairs from the Excel file and store them in a list
         List<Map.Entry<String, List<String>>> dataList = new ArrayList<>(readExcelFile(excelFilePath, sheetName).entrySet());
 
-        for ( Map.Entry<String, List<String>> data: dataList){
-            System.out.println(data.getKey()+"------"+data.getValue());
-        }
 
         // Get user input
         Scanner scanner = new Scanner(System.in);

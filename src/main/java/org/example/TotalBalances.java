@@ -128,8 +128,6 @@ public class TotalBalances {
                 BigDecimal amount = parseBigDecimalOrZero(values.get(0).trim());
                 String crDr = values.get(1).trim();
 
-                // Log each processed entry to identify where the difference may occur
-                System.out.println("Processing entry: " + entry.getKey() + " with amount: " + amount + " and type: " + crDr);
 
                 if (isAssetsOrExpenses) {
                     sum = sum.add(crDr.equals("Dr") ? amount : amount.negate());
@@ -137,16 +135,12 @@ public class TotalBalances {
                     sum = sum.add(crDr.equals("Cr") ? amount : amount.negate());
                 }
 
-                // Log intermediate sums with precision details
-                System.out.println("Intermediate sum for " + groupName + ": " + sum);
             }
 
             // Ensure the sum retains the correct scale for consistency
             sum = sum.setScale(5, RoundingMode.HALF_UP);
             groupSums.put(groupName, sum);
 
-            // Log the final sum value for verification
-            System.out.println("Finalized sum for " + groupName + ": " + sum);
         }
 
         return groupSums;
