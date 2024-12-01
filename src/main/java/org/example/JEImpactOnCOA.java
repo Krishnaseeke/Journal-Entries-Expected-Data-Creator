@@ -1,17 +1,17 @@
 package org.example;
 
+
 import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
-import java.awt.Color;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.*;
 
-public class COAImpact {
+
+public class JEImpactOnCOA {
 
     public static List<Map.Entry<String, List<String>>> calculateAndCreateImpactSheet(String filePath, List<Map.Entry<String, List<String>>> selectedEntries, List<Map.Entry<String, List<String>>> jeEntries) {
         try (FileInputStream fis = new FileInputStream(filePath);
@@ -40,9 +40,10 @@ public class COAImpact {
 
             // Define a CellStyle for the sky-blue background
             CellStyle skyBlueStyle = workbook.createCellStyle();
-            XSSFColor skyBlue = new XSSFColor(new Color(135, 206, 235), null); // RGB for sky-blue
-            ((XSSFCellStyle) skyBlueStyle).setFillForegroundColor(skyBlue);
+            XSSFColor skyBlue = new XSSFColor(new byte[]{(byte) 135, (byte) 206, (byte) 235});
+            skyBlueStyle.setFillForegroundColor(skyBlue);
             skyBlueStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
 
             // Process and update entries based on JE entries
             Map<String, List<String>> originalValues = new HashMap<>();
@@ -194,3 +195,5 @@ public class COAImpact {
         }
     }
 }
+
+

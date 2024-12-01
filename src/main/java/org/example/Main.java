@@ -1,5 +1,6 @@
 package org.example;
 
+
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
@@ -9,97 +10,43 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static org.example.AutomaticJETestDataCreator.generateKeyValuePairs;
 import static org.example.JEUI.dataforJEUI;
+
 
 public class Main {
 
-    public static void main(String[] args) {
-        String excelFilePath = "C:\\Users\\E14-3\\Downloads\\JE - TestData.xlsx";
-        String sheetName = "Unique Accounts";
+    public static  void main(String [] args) {
+        String excelFilePath = "C:\\Users\\VYAPAR APP\\IdeaProjects\\Journal-Entries-Expected-Data-Creator\\src\\main\\resources\\JE - TestData.xlsx";
+        String AllAccountssheetName = "Unique Accounts";
 
         // Read the key-value pairs from the Excel file and store them in a list
-        List<Map.Entry<String, List<String>>> dataList = new ArrayList<>(readExcelFile(excelFilePath, sheetName).entrySet());
+        List<Map.Entry<String, List<String>>> dataList = new ArrayList<>(readExcelFile(excelFilePath, "Unique Accounts").entrySet());
+//        List<Map.Entry<String, List<String>>> AllAccountdataList = new ArrayList<>(readExcelFile(excelFilePath, AllAccountssheetName).entrySet());
 
         List<Map.Entry<String, List<String>>> updatedSelectedEntries = null;
-        // Get user input
-        Scanner scanner = new Scanner(System.in);
+//        List<Map.Entry<String, List<String>>> AllAccountSupdatedSelectedEntries = null;
 
-        System.out.println("Enter JE Expected Data Creation: Automatic or Manual ?");
-        String creationType = scanner.nextLine();
-        int crCount = 0;
-        int drCount = 0;
-        String adjustmentType = null;
-        String transactionType = null;
+        List<Map.Entry<String, List<String>>> selectedEntries = pickAndPrintRandomEntries(dataList, 20, 20, null, "Transaction");
 
-        if (Objects.equals(creationType, "Automatic")) {
-            System.out.println("Enter kind of JE to Execute: Adjustments or Transaction?");
-            transactionType = scanner.nextLine();
-            if (Objects.equals(transactionType, "Adjustments")) {
-                System.out.println("Enter the Adjustment Type: Cr or Dr");
-                adjustmentType = scanner.nextLine();
-                if (Objects.equals(adjustmentType, "Cr")) {
-                    System.out.println("Enter No. of Cr type Accounts to be Selected: ");
-                    crCount = scanner.nextInt();
-                } else if (Objects.equals(adjustmentType, "Dr")) {
-                    System.out.println("Enter No. of Dr Accounts to be Selected?");
-                    drCount = scanner.nextInt();
-                } else {
-                    System.out.println("Adjustment Type doesn't exist");
-                    return;
-                }
+        List<Map.Entry<String, List<String>>> jeEntries = generateKeyValuePairs(selectedEntries);
 
-            } else if (Objects.equals(transactionType, "Transaction")) {
-                System.out.println("Enter No. of Cr type Accounts to be Selected: ");
-                crCount = scanner.nextInt();
+        if (checkEqualAmounts(jeEntries)) {
+            dataforJEUI(excelFilePath, jeEntries);
+            updatedSelectedEntries = JEImpactOnCOA.calculateAndCreateImpactSheet(excelFilePath, dataList, jeEntries);
+//                AllAccountSupdatedSelectedEntries = JEImpactOnCOA.calculateAndCreateImpactSheet(excelFilePath, AllAccountdataList, jeEntries);
 
-                System.out.println("Enter No. of Dr Accounts to be Selected?");
-                drCount = scanner.nextInt();
-            } else {
-                System.out.println("Transaction Type doesn't exist");
-                return;
-            }
+            // Update the Excel file with updated selected entries
+            updateExcelFile(excelFilePath,AllAccountssheetName, updatedSelectedEntries);
+            updateExcelFile(excelFilePath,"Unique Accounts", updatedSelectedEntries);
 
-            List<Map.Entry<String, List<String>>> selectedEntries = pickAndPrintRandomEntries(dataList, crCount, drCount, adjustmentType, transactionType);
-
-            double amount = 0.0;
-            String amountType;
-
-            List<Map.Entry<String, List<String>>> jeEntries = new ArrayList<>(); // Initialize the list
-
-            for (Map.Entry<String, List<String>> entry : selectedEntries) {
-                System.out.print("Enter an amount for key " + entry.getKey() + ": ");
-                amount = scanner.nextDouble();
-
-                // Update the amount to the entry value at zero index
-                entry.getValue().set(0, String.valueOf(amount));
-
-                // Consume the remaining newline left by nextDouble()
-                scanner.nextLine();
-
-                // Print the current amount type at index 1
-                System.out.print("Enter the Amount Type (Cr or Dr) for key " + entry.getKey() + " (Current amountType: " + entry.getValue().get(1) + "): ");
-                amountType = scanner.nextLine();
-
-                // Update the amount type to the entry value at first index
-                entry.getValue().set(1, amountType);
-
-                // Add the updated entry to the list
-                jeEntries.add(entry);
-            }
-
-            if (checkEqualAmounts(jeEntries)) {
-                dataforJEUI(excelFilePath, jeEntries);
-                updatedSelectedEntries = COAImpact.calculateAndCreateImpactSheet(excelFilePath, dataList, jeEntries);
-
-                // Update the Excel file with updated selected entries
-                updateExcelFile(excelFilePath, sheetName, updatedSelectedEntries);
-
-            } else {
-                System.out.println("Both are not Equal");
-            }
-
+        } else {
+            System.out.println("Both are not Equal");
         }
+
+
     }
+
 
     public static Map<String, List<String>> readExcelFile(String filePath, String sheetName) {
         Map<String, List<String>> dataMap = new LinkedHashMap<>();
@@ -137,7 +84,7 @@ public class Main {
         return dataMap;
     }
 
-    private static String getCellValue(Cell cell) {
+    public static String getCellValue(Cell cell) {
         if (cell == null) {
             return "";
         }
@@ -160,13 +107,24 @@ public class Main {
         }
     }
 
+
     public static List<Map.Entry<String, List<String>>> pickAndPrintRandomEntries(
             List<Map.Entry<String, List<String>>> dataList, int crCount, int drCount, String adjustmentType, String transactionType) {
-        // Separate entries into those with "Cr" and those with "Dr"
+        // List of accounts to exclude
+        Set<String> excludedAccounts = new HashSet<>(Arrays.asList("CarLoan", "Krishna", "Fixed Car Asset", "Bank Assets"));
+
+        // Separate entries into those with "Cr" and those with "Dr", excluding the unwanted accounts
         List<Map.Entry<String, List<String>>> crEntries = new ArrayList<>();
         List<Map.Entry<String, List<String>>> drEntries = new ArrayList<>();
 
         for (Map.Entry<String, List<String>> entry : dataList) {
+            String key = entry.getKey();
+
+            // Skip entries that belong to the excluded accounts
+            if (excludedAccounts.contains(key)) {
+                continue;
+            }
+
             List<String> values = entry.getValue();
             for (String value : values) {
                 if (value.contains("Cr")) {
@@ -211,6 +169,7 @@ public class Main {
 
         return trimmedEntries;
     }
+
 
     // Function to check if the sums of 'Cr' and 'Dr' amounts are equal
     public static boolean checkEqualAmounts(List<Map.Entry<String, List<String>>> jeEntries) {

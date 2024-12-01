@@ -1,5 +1,4 @@
 package org.example;
-
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
@@ -234,3 +233,4 @@ public class TotalBalances {
         debitClosingValueCell.setCellStyle(decimalStyle);
     }
 }
+
