@@ -27,7 +27,7 @@ public class Main {
         List<Map.Entry<String, List<String>>> updatedSelectedEntries = null;
 //        List<Map.Entry<String, List<String>>> AllAccountSupdatedSelectedEntries = null;
 
-        List<Map.Entry<String, List<String>>> selectedEntries = pickAndPrintRandomEntries(dataList, 20, 20, null, "Transaction");
+        List<Map.Entry<String, List<String>>> selectedEntries = pickAndPrintRandomEntries(dataList, 4, 4, null, "Transaction");
 
         List<Map.Entry<String, List<String>>> jeEntries = generateKeyValuePairs(selectedEntries);
 

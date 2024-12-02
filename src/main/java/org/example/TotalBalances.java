@@ -60,7 +60,7 @@ public class TotalBalances {
             BigDecimal incomes = groupSums.getOrDefault("Incomes", BigDecimal.ZERO);
             BigDecimal expenses = groupSums.getOrDefault("Expenses", BigDecimal.ZERO);
             BigDecimal openingStock = new BigDecimal("10576.00"); // Given opening stock value
-            BigDecimal closingStock = new BigDecimal("176918.76"); // Given closing stock value
+            BigDecimal closingStock = new BigDecimal("188376.00"); // Given closing stock value
             BigDecimal totalPnL = incomes.subtract(expenses).subtract(openingStock).add(closingStock);
 
             // Header for Total PnL Balance
@@ -157,11 +157,11 @@ public class TotalBalances {
     // Method to add Assets and Equities rows based on additional calculations
     private static void addAssetsAndEquitiesRows(Sheet sheet, Map<String, BigDecimal> groupSums, BigDecimal totalPnL, int rowIndex, CellStyle decimalStyle) {
         // Fixed values for additional calculations
-        BigDecimal stockInHand = new BigDecimal("176918.76");
-        BigDecimal otherCurrentAssets = new BigDecimal("30629.34");
+        BigDecimal stockInHand = new BigDecimal("188376");
+        BigDecimal otherCurrentAssets = new BigDecimal("32699.33");
         BigDecimal openingStock = new BigDecimal("10576.00"); // Given opening stock value
-        BigDecimal openingBalanceEquity = new BigDecimal("1035188.01");
-        BigDecimal advancesReceived = new BigDecimal("23282.71");
+        BigDecimal openingBalanceEquity = new BigDecimal("1034188.01");
+        BigDecimal advancesReceived = new BigDecimal("23625.71");
         BigDecimal unwithdrawnCheques = new BigDecimal("30254.49");
 
         // Calculate Assets total
