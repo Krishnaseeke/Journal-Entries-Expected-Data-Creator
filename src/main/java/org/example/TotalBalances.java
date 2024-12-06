@@ -203,14 +203,13 @@ public class TotalBalances {
 
         // Calculate Total Credit Closing Balance
         BigDecimal totalCreditClosing = groupSums.getOrDefault("Equities and Liabilities", BigDecimal.ZERO)
-                .add(groupSums.getOrDefault("Incomes", BigDecimal.ZERO))
                 .add(openingBalanceEquity)
                 .add(advancesReceived)
                 .add(unwithdrawnCheques);
 
         // Add row for Total Credit Closing Balance
         Row creditClosingBalanceRow = sheet.createRow(rowIndex++);
-        creditClosingBalanceRow.createCell(0).setCellValue("Total Credit Closing Balance: Equities and Liabilities + Incomes + Opening Balance Owners Equity + Advance Paid for Sale Order + Unwithdrawn Cheques");
+        creditClosingBalanceRow.createCell(0).setCellValue("Total Closing Balance of Equities and Liabilities + Opening Balance Owners Equity + Advance Paid for Sale Order + Unwithdrawn Cheques");
         Row creditClosingValueRow = sheet.createRow(rowIndex++);
         creditClosingValueRow.createCell(0).setCellValue(totalCreditClosing.compareTo(BigDecimal.ZERO) < 0 ? "Dr" : "Cr");
         Cell creditClosingValueCell = creditClosingValueRow.createCell(1);
@@ -219,18 +218,39 @@ public class TotalBalances {
 
         // Calculate Total Debit Closing Balance
         BigDecimal totalDebitClosing = groupSums.getOrDefault("Assets", BigDecimal.ZERO)
-                .add(groupSums.getOrDefault("Expenses", BigDecimal.ZERO))
                 .add(openingStock)
                 .add(otherCurrentAssets);
 
         // Add row for Total Debit Closing Balance
         Row debitClosingBalanceRow = sheet.createRow(rowIndex++);
-        debitClosingBalanceRow.createCell(0).setCellValue("Total Debit Closing Balance: Assets + Expenses + Opening Stock + Other Current Assets");
+        debitClosingBalanceRow.createCell(0).setCellValue("Total Debit Closing Balance of Assets + Opening Stock + Other Current Assets");
         Row debitClosingValueRow = sheet.createRow(rowIndex++);
         debitClosingValueRow.createCell(0).setCellValue("Dr");
         Cell debitClosingValueCell = debitClosingValueRow.createCell(1);
         debitClosingValueCell.setCellValue(totalDebitClosing.doubleValue());
         debitClosingValueCell.setCellStyle(decimalStyle);
+
+        BigDecimal totalIncomeClosing = groupSums.getOrDefault("Incomes", BigDecimal.ZERO);
+
+        // Add row for Total Income Closing Balance
+        Row incomeClosingBalanceRow = sheet.createRow(rowIndex++);
+        incomeClosingBalanceRow.createCell(0).setCellValue("Total Income Closing Balance of Incomes");
+        Row incomeClosingValueRow = sheet.createRow(rowIndex++);
+        incomeClosingValueRow.createCell(0).setCellValue("Cr");
+        Cell incomeClosingValueCell = incomeClosingValueRow.createCell(1);
+        incomeClosingValueCell.setCellValue(totalIncomeClosing.doubleValue());
+        incomeClosingValueCell.setCellStyle(decimalStyle);
+
+        BigDecimal totalExpensesClosing = groupSums.getOrDefault("Expenses", BigDecimal.ZERO);
+
+        // Add row for Total Expenses Closing Balance
+        Row expensesClosingBalanceRow = sheet.createRow(rowIndex++);
+        expensesClosingBalanceRow.createCell(0).setCellValue("Total Expenses Closing Balance of Expenses");
+        Row expensesClosingValueRow = sheet.createRow(rowIndex++);
+        expensesClosingValueRow.createCell(0).setCellValue("Dr");
+        Cell expensesClosingValueCell = expensesClosingValueRow.createCell(1);
+        expensesClosingValueCell.setCellValue(totalExpensesClosing.doubleValue());
+        expensesClosingValueCell.setCellStyle(decimalStyle);
     }
 }
 
