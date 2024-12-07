@@ -1,7 +1,5 @@
 package org.example;
 
-
-
 import java.util.*;
 
 public class AutomaticJETestDataCreator {
@@ -20,7 +18,7 @@ public class AutomaticJETestDataCreator {
 
         // First, process "Dr" entries
         for (int i = 0; i < halfSize; i++) {
-            int value = random.nextInt(1000); // value2 is any number less than 1000
+            int value = random.nextInt(1000) + 1; // Ensure value > 0
             drSum += value;
 
             // Create a new entry for "Dr"
@@ -30,9 +28,9 @@ public class AutomaticJETestDataCreator {
             jeEntries.add(new AbstractMap.SimpleEntry<>(selectedEntries.get(i).getKey(), values));
         }
 
-        // Now process "Cr" entries with adjusted values
+        // Now process "Cr" entries
         for (int i = halfSize; i < selectedEntries.size() - 1; i++) {
-            int value = random.nextInt(1000);
+            int value = random.nextInt(1000) + 1; // Ensure value > 0
             crSum += value;
 
             // Create a new entry for "Cr"
@@ -42,12 +40,27 @@ public class AutomaticJETestDataCreator {
             jeEntries.add(new AbstractMap.SimpleEntry<>(selectedEntries.get(i).getKey(), values));
         }
 
-        // Adjust last Cr value to match total sum of Dr
-        int lastCrValue = drSum - crSum;
-        List<String> values = new ArrayList<>();
-        values.add(String.valueOf(lastCrValue));
-        values.add("Cr");
-        jeEntries.add(new AbstractMap.SimpleEntry<>(selectedEntries.get(selectedEntries.size() - 1).getKey(), values));
+        // Calculate the remaining Cr value needed to balance the sums
+        int remainingCrValue = drSum - crSum;
+
+        if (remainingCrValue <= 0) {
+            // Distribute the difference across all Cr entries proportionally
+            int deficit = Math.abs(remainingCrValue);
+            for (int i = halfSize; i < jeEntries.size(); i++) {
+                Map.Entry<String, List<String>> entry = jeEntries.get(i);
+                int currentValue = Integer.parseInt(entry.getValue().get(0));
+                int adjustment = Math.min(deficit, currentValue - 1); // Ensure value remains > 0
+                deficit -= adjustment;
+                entry.getValue().set(0, String.valueOf(currentValue - adjustment));
+                if (deficit == 0) break;
+            }
+        } else {
+            // Assign the remaining positive Cr value to the last entry
+            List<String> values = new ArrayList<>();
+            values.add(String.valueOf(remainingCrValue));
+            values.add("Cr");
+            jeEntries.add(new AbstractMap.SimpleEntry<>(selectedEntries.get(selectedEntries.size() - 1).getKey(), values));
+        }
 
         return jeEntries;
     }
