@@ -251,6 +251,30 @@ public class TotalBalances {
         Cell expensesClosingValueCell = expensesClosingValueRow.createCell(1);
         expensesClosingValueCell.setCellValue(totalExpensesClosing.doubleValue());
         expensesClosingValueCell.setCellStyle(decimalStyle);
+
+        BigDecimal trailBalanceFinalValueDifference1 = groupSums.getOrDefault("Assets", BigDecimal.ZERO)
+                .add(groupSums.getOrDefault("Expenses", BigDecimal.ZERO))
+                .add(openingStock)
+                .add(otherCurrentAssets);
+        BigDecimal trailBalanceFinalValueDifference2 = groupSums.getOrDefault("Equities and Liabilities", BigDecimal.ZERO)
+                .add(groupSums.getOrDefault("Incomes", BigDecimal.ZERO))
+                .add(openingBalanceEquity)
+                .add(advancesReceived)
+                .add(unwithdrawnCheques);
+
+
+        // Add row for Trail Balance Final Value Difference 1
+        Row trailBalanceFinalValueDifference1Row = sheet.createRow(rowIndex++);
+        trailBalanceFinalValueDifference1Row.createCell(0).setCellValue("Trail Balance Final Value Difference 1");
+        Row trailBalanceFinalValueDifference1ValueRow = sheet.createRow(rowIndex++);
+        trailBalanceFinalValueDifference1ValueRow.createCell(0).setCellValue(trailBalanceFinalValueDifference1.compareTo(BigDecimal.ZERO) < 0 ? "Dr" : "Cr");
+        Cell trailBalanceFinalValueDifference1ValueCell = trailBalanceFinalValueDifference1ValueRow.createCell(1);
+        BigDecimal difference = BigDecimal.valueOf(trailBalanceFinalValueDifference1.doubleValue())
+                .subtract(BigDecimal.valueOf(trailBalanceFinalValueDifference2.doubleValue()));
+        BigDecimal roundedDifference = difference.setScale(1, RoundingMode.HALF_UP); // Round to 1 decimal place
+        trailBalanceFinalValueDifference1ValueCell.setCellValue(roundedDifference.doubleValue());
+
+
     }
 }
 
