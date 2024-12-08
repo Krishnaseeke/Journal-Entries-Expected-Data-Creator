@@ -119,6 +119,10 @@ public class JEImpactOnCOA {
 
     // Method to update selected entries based on JE entries
     private static void updateSelectedEntries(List<Map.Entry<String, List<String>>> selectedEntries, List<Map.Entry<String, List<String>>> jeEntries) {
+
+        // List to store the modified entries
+        List<Map.Entry<String, List<String>>> modifiedEntries = new ArrayList<>();
+
         for (Map.Entry<String, List<String>> selectedEntry : selectedEntries) {
             String selectedKey = selectedEntry.getKey();
             List<String> selectedValues = selectedEntry.getValue();
@@ -152,10 +156,16 @@ public class JEImpactOnCOA {
                     // Update selectedValues with new amounts and Cr/Dr
                     selectedValues.set(0, String.valueOf(selectedAmount));
                     selectedValues.set(1, selectedCrDr);
-
+                    modifiedEntries.add(Map.entry(selectedKey, new ArrayList<>(selectedValues)));
                     break; // Stop checking further jeEntries for this selectedEntry
                 }
             }
+        }
+
+        // Print or return the modified entries
+        System.out.println("Modified Entries:");
+        for (Map.Entry<String, List<String>> modifiedEntry : modifiedEntries) {
+            System.out.println("Key: " + modifiedEntry.getKey() + ", Values: " + modifiedEntry.getValue());
         }
     }
 

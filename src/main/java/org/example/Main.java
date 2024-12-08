@@ -22,12 +22,18 @@ public class Main {
 
         // Read the key-value pairs from the Excel file and store them in a list
         List<Map.Entry<String, List<String>>> dataList = new ArrayList<>(readExcelFile(excelFilePath, "Unique Accounts").entrySet());
+        List<Map.Entry<String, List<String>>> specificDataList = new ArrayList<>(readExcelFile(excelFilePath, "Unique Accounts").entrySet());
+
 //        List<Map.Entry<String, List<String>>> AllAccountdataList = new ArrayList<>(readExcelFile(excelFilePath, AllAccountssheetName).entrySet());
 
         List<Map.Entry<String, List<String>>> updatedSelectedEntries = null;
 //        List<Map.Entry<String, List<String>>> AllAccountSupdatedSelectedEntries = null;
 
-        List<Map.Entry<String, List<String>>> selectedEntries = pickAndPrintRandomEntries(dataList, 1, 1, null, "Transaction");
+        List<Map.Entry<String, List<String>>> selectedEntries = pickAndPrintRandomEntries(dataList, specificDataList,1, 1, null, "Transaction","Unique Accounts");
+        for (Map.Entry<String, List<String>> entry : selectedEntries) {
+            System.out.println("Selected Entries: " + selectedEntries);
+        }
+
 
         List<Map.Entry<String, List<String>>> jeEntries = generateKeyValuePairs(selectedEntries);
 
@@ -109,7 +115,11 @@ public class Main {
 
 
     public static List<Map.Entry<String, List<String>>> pickAndPrintRandomEntries(
-            List<Map.Entry<String, List<String>>> dataList, int crCount, int drCount, String adjustmentType, String transactionType) {
+            List<Map.Entry<String, List<String>>> dataList,List<Map.Entry<String, List<String>>> specificdataList, int crCount, int drCount, String adjustmentType, String transactionType,String sheetName) {
+
+        if(specificdataList!=null && sheetName!="Unique Accounts") {
+            return specificdataList;
+        }
         // List of accounts to exclude
         Set<String> excludedAccounts = new HashSet<>(Arrays.asList("CarLoan", "Krishna", "Fixed Car Asset", "Bank Assets"));
 
